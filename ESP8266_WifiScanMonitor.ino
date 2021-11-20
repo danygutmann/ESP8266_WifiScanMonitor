@@ -9,14 +9,13 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-  Serial.println("Setup done");
+  Serial.println("Start Scan");
 }
 
-String Get(String url)
-{
+String Get(String url){
   if (sender.begin(wifiClient, url)) {
 
-    Serial.println(url);
+   // Serial.println(url);
     
     // HTTP-Code der Response speichern
     int httpCode = sender.GET();
@@ -34,7 +33,8 @@ String Get(String url)
 
         // Hier kann mit dem Wert weitergearbeitet werden
        // ist aber nicht unbedingt notwendig
-        Serial.println(payload);
+       return payload;
+
       }
       
     }else{
@@ -46,6 +46,26 @@ String Get(String url)
     sender.end();
   }
   
+}
+void GetTime(){
+  Serial.println(Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=I"));
+}
+void GetInfo(String ssid){
+  Serial.println();
+  Serial.print(Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=GT"));
+  Serial.print(" ");
+  Serial.println(ssid);
+} 
+void Connect(String ssid, String pass){
+  Serial.print("connect to " + ssid);
+  WiFi.begin(ssid, pass); 
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(1000);
+    Serial.print('.');
+  }
+  Serial.println();
+  GetInfo(ssid);
 }
 
 void loop() 
@@ -63,21 +83,38 @@ void loop()
         if(WiFi.SSID(i).indexOf("Airscent") >= 0)
         {
           // connect
-          Serial.println("FOUND " + WiFi.SSID(i));
-          WiFi.begin(WiFi.SSID(i), "airscent"); 
-          while (WiFi.status() != WL_CONNECTED) 
-          {
-            delay(1000);
-            Serial.print('.');
-          }
+          Connect(String(WiFi.SSID(i)), "airscent");
+//          Serial.println("FOUND " + WiFi.SSID(i));
+//          WiFi.begin(WiFi.SSID(i), "airscent"); 
+//          while (WiFi.status() != WL_CONNECTED) 
+//          {
+//            delay(1000);
+//            Serial.print('.');
+//          }
+//          GetInfo(WiFi.SSID(i));
         }
+        if(WiFi.SSID(i).indexOf("Begeuren") >= 0)
+        {
+          // connect
+          Connect(String(WiFi.SSID(i)), "begeuren");
+          
+//          Serial.println("FOUND " + WiFi.SSID(i));
+//          WiFi.begin(WiFi.SSID(i), "begeuren"); 
+//          while (WiFi.status() != WL_CONNECTED) 
+//          {
+//            delay(1000);
+//            Serial.print('.');
+//          }
+//          GetInfo(WiFi.SSID(i));
+        }
+        
+        
         delay(10);
       }
     }
   
   }else{
-    // get data 
-    Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=I");
+    GetTime();
     
   }
   delay(1000);
