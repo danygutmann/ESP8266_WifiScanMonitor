@@ -1,15 +1,27 @@
 #include "ESP8266WiFi.h"
 #include <ESP8266HTTPClient.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 HTTPClient sender;
 WiFiClient wifiClient;
+
+#define OLED_RESET 0  // GPIO0
+Adafruit_SSD1306 display(OLED_RESET);
+String CurrInfo, CurrSsid, CurrTime, CurrBrand, CurrType;
+
 
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-  Serial.println("Start Scan");
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.display();
+  display.clearDisplay();
 }
 
 String Get(String url){
@@ -48,74 +60,107 @@ String Get(String url){
   
 }
 void GetTime(){
-  Serial.println(Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=I"));
+
+  CurrTime = Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=I");
+  Serial.println(CurrTime);
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println(CurrBrand);
+  display.println(CurrType);
+  String empty = "";
+  CurrSsid.replace(CurrBrand, empty);
+  display.println(CurrSsid);
+  display.println();
+  display.setTextSize(1.5);
+  display.println(CurrTime.substring(9,17));
+  display.display();
 }
-void GetInfo(String ssid){
+void GetType(String ssid){
+  CurrType = Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=GT");
   Serial.println();
-  Serial.print(Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=GT"));
-  Serial.print(" ");
-  Serial.println(ssid);
+  Serial.print("Type: " + CurrType);
 } 
-void Connect(String ssid, String pass){
-  Serial.print("connect to " + ssid);
-  WiFi.begin(ssid, pass); 
+
+void WifiScan(){
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("Scan");
+  display.display();
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  int n = WiFi.scanNetworks();
+  if (n != 0) 
+  {
+    for (int i = 0; i < n; ++i) 
+    {      
+      if(WiFi.SSID(i).indexOf("Airscent") >= 0)
+      {
+        CurrBrand = "Airscent";
+        WifiConnect(String(WiFi.SSID(i)), "airscent");
+      }
+      if(WiFi.SSID(i).indexOf("Begeuren") >= 0)
+      {
+        CurrBrand = "Begeuren";
+        WifiConnect(String(WiFi.SSID(i)), "begeuren");          
+      }
+      if(WiFi.SSID(i).indexOf("Amatrius") >= 0)
+      {
+        CurrBrand = "Amatrius";
+        WifiConnect(String(WiFi.SSID(i)), "amatrius");          
+      }
+      delay(10);
+    }
+  }
+}
+void WifiConnect(String ssid, String pass){
+  CurrSsid = ssid;
+  Serial.print("connect to " + CurrSsid);
+
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("Found");
+  display.display();
+  
+  WiFi.begin(ssid, pass);
   while (WiFi.status() != WL_CONNECTED) 
   {
     delay(1000);
     Serial.print('.');
   }
   Serial.println();
-  GetInfo(ssid);
+  GetType(CurrSsid);
+}
+
+
+void DisplayTest(){
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("Hello, world!");
+  display.setTextColor(BLACK, WHITE); // 'inverted' text
+  display.println(3.141592);
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.print("0x"); display.println(0xDEADBEEF, HEX);
+  display.display();
+  delay(2000);
 }
 
 void loop() 
-{
+{ 
   if (WiFi.status() != WL_CONNECTED)
   {
-    // no wifi connection
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
-    int n = WiFi.scanNetworks();
-    if (n != 0) 
-    {
-      for (int i = 0; i < n; ++i) 
-      {      
-        if(WiFi.SSID(i).indexOf("Airscent") >= 0)
-        {
-          // connect
-          Connect(String(WiFi.SSID(i)), "airscent");
-//          Serial.println("FOUND " + WiFi.SSID(i));
-//          WiFi.begin(WiFi.SSID(i), "airscent"); 
-//          while (WiFi.status() != WL_CONNECTED) 
-//          {
-//            delay(1000);
-//            Serial.print('.');
-//          }
-//          GetInfo(WiFi.SSID(i));
-        }
-        if(WiFi.SSID(i).indexOf("Begeuren") >= 0)
-        {
-          // connect
-          Connect(String(WiFi.SSID(i)), "begeuren");
-          
-//          Serial.println("FOUND " + WiFi.SSID(i));
-//          WiFi.begin(WiFi.SSID(i), "begeuren"); 
-//          while (WiFi.status() != WL_CONNECTED) 
-//          {
-//            delay(1000);
-//            Serial.print('.');
-//          }
-//          GetInfo(WiFi.SSID(i));
-        }
-        
-        
-        delay(10);
-      }
-    }
-  
+    WifiScan(); 
   }else{
     GetTime();
-    
   }
   delay(1000);
 }
