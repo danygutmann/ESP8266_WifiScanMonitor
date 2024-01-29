@@ -11,6 +11,7 @@ void setup() {
   delay(100);
 }
 
+// core fuctions
 void WifiConnect(String ssid, String pass) {
   Serial.print("Connect to " + ssid);
   WiFi.begin(ssid, pass);
@@ -37,6 +38,8 @@ String Get(String url) {
   }
   return "error";
 }
+
+// wrappers
 void GetType(){
   Serial.print("Get Type: ");
   Serial.println(Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=GT"));
@@ -55,12 +58,14 @@ void ReadLine(int linenumber){
   Serial.println(Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=R&LINES=1&DATA="+String(number)));
 }
 void WriteLine(int linenumber, String data){
-  Serial.print("Write Line "+String(linenumber)+": ");
+  //Serial.print("Write Line "+String(linenumber)+": ");
   int lineraw = linenumber-1;
-  int number = 10*lineraw;
-  String Address = "";
+  int number = lineraw*10;
+  String Address = "x";
   if (number > 100 ) Address = "0" + String(number); 
   if (number > 10 ) Address = "000"; 
+
+  Serial.print("Write Line "+Address+": ");
   Serial.println(Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=P&LINES=12&DATA="+Address+data));
 }
 
@@ -112,6 +117,8 @@ void loop() {
     if (str.indexOf("SetTime") > -1) {
       String time = str.substring(7);
       Serial.println("set time to " + time);
+      
+
     }
     if (str.indexOf("Send") > -1) {
       String url = "http://192.168.4.1/" + str.substring(4);
