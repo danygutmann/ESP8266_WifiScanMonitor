@@ -52,12 +52,8 @@ String WifiScan() {
   return erg;
 }
 String WifiConnect(String ssid, String pass){
-  String erg = "Connect to ";
-  erg += String(ssid);
-  erg += "\n";
 
-  WiFi.begin(ssid, pass);
-
+  WiFi.begin(ssid.c_str(), pass.c_str());
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -69,7 +65,7 @@ String WifiConnect(String ssid, String pass){
   Serial.println(WiFi.localIP());
   Serial.println("Connected to ");
 
-  return erg;
+  return "connected";
 }
 String WifiInfo() {
   return "";
@@ -106,13 +102,7 @@ String AsConnect(String ssid){
   if (ssid.indexOf("Begeuren") > -1) pass = "begeuren";
   Serial.println("pass: " + pass);
 
-  WiFi.begin(ssid.c_str(), pass.c_str());
-  while (WiFi.status() != WL_CONNECTED) 
-  {
-    delay(500);
-    Serial.print('.');
-  }
-  Serial.println("Connected");
+  return WifiConnect(ssid, pass);
 }
 
 
@@ -127,7 +117,7 @@ void loop() {
     String str = Serial.readString();
     str.trim();    
     Serial.println(str);
-    
+
 
     String erg = "";
     if (str == "WifiScan") erg = WifiScan();
