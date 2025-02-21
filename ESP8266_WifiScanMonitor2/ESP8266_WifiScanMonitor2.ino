@@ -346,7 +346,57 @@ String TestProduction() {
   
   return "EOF";
 }
+String TestDelivery() {
+  RtcGetTime();
+  Serial.println("DELIVERY TEST");
+  Serial.println("Date: " + rtc_date);
+  Serial.println("Time: " + rtc_time);
+  Serial.println("Pc: ESPHelper " + String(ESP.getChipId()));
+  Serial.println("");
+  Serial.println("FIND wifi device:");
+  WifiConnectFirst();
+  Serial.println("   " + last_SSID);
 
+  Serial.println("GET Type:");
+  String thetype = "   " + Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=GT");
+  Serial.println(thetype);
+  String basetype = "unknown";
+  if(thetype.indexOf("Aromare") > 0) basetype = "Aromare";
+  if(thetype.indexOf("Quad") > 0)    basetype = "Quad";
+  if(thetype.indexOf("Venturi") > 0) basetype = "Venturi";
+  Serial.println("   Basetype " + basetype);
+
+  Serial.println("GET Serial:");
+  String serial = Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=GS");
+  Serial.println("   " + serial);
+  Serial.println("SERIAL=" + serial);
+
+  Serial.println("CHECK Time:");
+  RtcGetTime();
+  String info = Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=I");
+  Serial.println("   " + rtc_date + " " + rtc_time + " (PC)");
+  Serial.println("   " + info + " (device)");
+  if(info.indexOf(".20|") > 0) Serial.println("    Error! wrong Date/Time (.20|)");
+  if(info.indexOf(".2000") > 0) Serial.println("    Error! wrong Date/Time (.2000)");
+
+  Serial.println("READ out lines:");
+  for (int i = 0; i < 20; i++) 
+  {
+    int number = 10*i;
+    String tmp = Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=R&LINES=1&DATA="+String(number));
+    if (tmp.startsWith("254")){
+      Serial.println("   " + tmp);
+    }else{
+      break;
+    }
+     
+  }
+
+  Serial.println("GET Info:");
+  Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=I"));
+  
+  return "EOF";
+}
 // loop
 String ExecuteCmd(String str, String source) {
 
@@ -365,6 +415,7 @@ String ExecuteCmd(String str, String source) {
 
   // Tests
   if (str == "TestProduction") return TestProduction();
+  if (str == "TestDelivery") return TestDelivery();
 
 
   //  Set RTC
