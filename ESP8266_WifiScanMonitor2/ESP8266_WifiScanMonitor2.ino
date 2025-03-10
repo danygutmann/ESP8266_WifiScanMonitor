@@ -314,6 +314,30 @@ String TestProduction() {
   Serial.println("DELETE all lines:");
   Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendCmd&SUBCMD=E"));
 
+  // check lines
+  
+  if (basetype == "Venturi") {
+    Serial.println("TEST Device:");
+    Serial.println("Test Venturi Port 1");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=001100002"));
+    Serial.println("Test Venturi Port 2");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=002100002"));
+    Serial.println("Test Venturi Port 3");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=003100002"));
+  }
+
+  if (basetype == "Quad") {
+    Serial.println("TEST Device:");
+    Serial.println("Test Quad Port 1");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=001100002"));
+    Serial.println("Test Quad Port 2");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=002100002"));
+    Serial.println("Test Quad Port 3");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=003100002"));
+    Serial.println("Test Quad Port 4");
+    Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=Z&LINES=12&DATA=004100002"));
+    }
+
   Serial.println("SET default lines for " + basetype + ":");
   if (basetype == "Quad") {
     Serial.println("   " + Get("http://192.168.4.1/CMD/?CMD=SendData&SUBCMD=P&LINES=12&DATA=000254000001023059001001100100"));
